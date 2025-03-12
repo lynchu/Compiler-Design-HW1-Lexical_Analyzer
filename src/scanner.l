@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
 #define MAX_LINE_LEN 512
 /* Code runs each time a token is matched. */
@@ -20,11 +22,92 @@ static char current_line[MAX_LINE_LEN];
 static void updateCurrentLine(const char *source);
 static void listToken(const char *name);
 static void listLiteral(const char *name, const char *literal);
+static bool isKeyword(const char *word);
 
 %}
 
+delimiters  [,;:\[\]()]
+operators   \+|\-|\*|\/|"mod"|:=|<|<=|<>|>=|>|=|"and"|"or"|"not"
+digit       [0-9]
+integer     0|[1-9]{digit}*
+float       {integer}\.(0|{digit}*[1-9])
+octal       0[0-7]+
+real        ([1-9]{digit}*)|([1-9]{digit}*\.(0|{digit}*[1-9]))|(0\.{digit}*[1-9])
+space       [ \t\n]+
+letter      [a-zA-Z]
+string      \"([^\"\n]|\"\")*\"
+
+%x CCOMMENT 
+%x CPPCOMMENT
+
 %%
-"(" { listToken("("); }
+"//&S-"(.*) { opt_src = 0; }
+"//&T-"(.*) { opt_tok = 0; }
+"//&S+"(.*) { opt_src = 1; }
+"//&T+"(.*) { opt_tok = 1; }
+
+"/*" { BEGIN(CCOMMENT); }
+<CCOMMENT>[^*]*\*+([^/*][^*]*\*+)*"/" { BEGIN(INITIAL); }
+
+"//" {BEGIN(CPPCOMMENT); }
+<CPPCOMMENT>.* ;
+<CPPCOMMENT>\n { BEGIN(INITIAL); }
+
+{string} {
+    char* tmp = malloc(yyleng + 1);
+    strcpy(tmp, yytext);
+    if(opt_tok) {
+        printf("<string: ");
+    }
+    tmp[yyleng - 1] = '\0';
+
+    int len = strlen(tmp);
+    for (int i=1;i<len;i++) {
+        if (tmp[i]=='"' && tmp[i+1]=='"') {
+            if (opt_tok) {
+                printf("\"");  
+            }
+            i++;  
+        } else {
+            if (opt_tok) {
+                printf("%c", tmp[i]);
+            }
+        }
+    }
+
+    if(opt_tok){
+        printf(">\n");
+    }
+}
+
+{delimiters} {
+    listToken(yytext);
+}
+
+{operators} {
+    listToken(yytext);
+}
+
+{letter}({letter}|{digit})* {
+    if(isKeyword(yytext)){
+        char keyword[20];
+        snprintf(keyword, sizeof(keyword), "KW%s", yytext);
+        listToken(keyword);
+    } else {
+        listLiteral("id", yytext);
+    }
+}
+
+{real}[eE][+-]?{integer} { listLiteral("scientific", yytext); }
+
+{float} { listLiteral("float", yytext); }
+
+{integer} { listLiteral("integer", yytext); }
+
+{octal} { listLiteral("oct_integer", yytext); }
+
+{space} ;
+
 
     /* Catch the character which is not accepted by rules above */
 . {
@@ -67,6 +150,20 @@ static void listLiteral(const char *name, const char *literal) {
     if (opt_tok) {
         printf("<%s: %s>\n", name, literal);
     }
+}
+
+static bool isKeyword(const char *word) {
+    const char *keywords[] = { "var", "def", 
+                            "array", "of", "boolean", "integer", "real", "string", 
+                            "true", "false", 
+                            "while", "do", "if", "then", "else", "for", "to", 
+                            "begin", "end", 
+                            "print", "read", "return", NULL};
+
+    for(int i = 0; keywords[i] != NULL; i++){
+        if(strcmp(word, keywords[i])==0) return true;
+    }
+    return false;
 }
 
 /** @note This function is not required if the input file is guaranteed to end
