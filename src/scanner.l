@@ -54,22 +54,22 @@ string      \"([^\"\n]|\"\")*\"
 <CPPCOMMENT>\n { BEGIN(INITIAL); }
 
 {string} {
-    char* tmp = malloc(yyleng + 1);
-    strcpy(tmp, yytext);
-    if(opt_tok) {
+    char* tmp = malloc(yyleng); 
+    strncpy(tmp, yytext+1, yyleng-2); 
+    tmp[yyleng-2]='\0';
+
+    if (opt_tok) {
         printf("<string: ");
     }
-    tmp[yyleng - 1] = '\0';
 
-    int len = strlen(tmp);
-    for (int i=1;i<len;i++) {
-        if (tmp[i]=='"' && tmp[i+1]=='"') {
-            if (opt_tok) {
-                printf("\"");  
+    for(int i=0;tmp[i]!='\0';i++) {
+        if(tmp[i]=='"' && tmp[i+1]=='"'){
+            if(opt_tok){
+                printf("\"");
             }
-            i++;  
-        } else {
-            if (opt_tok) {
+            i++;
+        }else{
+            if(opt_tok){
                 printf("%c", tmp[i]);
             }
         }
