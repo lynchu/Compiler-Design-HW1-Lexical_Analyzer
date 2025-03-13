@@ -68,7 +68,7 @@ string      \"([^\"\n]|\"\")*\"
                 printf("\"");
             }
             i++;
-        }else{
+        } else {
             if(opt_tok){
                 printf("%c", tmp[i]);
             }

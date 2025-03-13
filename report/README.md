@@ -24,8 +24,8 @@ I categorized tokens into delimiters, operators, digits, integers, floating poin
 ### Part 2 & 3: Token Actions
 Most token actions are implemented using `listToken` and `listLiteral`. However, strings require special handling since double quotes can appear as consecutive characters within string constants. A dedicated action ensures correct parsing of these cases. Additionally, the `isKeyword` function verifies whether an identifier matches a reserved keyword.
 
-### Part 4: Handling C/C++ Comments
-C++-style comments are easier to handle as they terminate with `\n`. In contrast, C-style comments can span multiple lines, requiring carefully designed regular expressions. Both types are managed using exclusive start conditions.
+### Part 4: Handling C/C++  and Pseudo Comments
+C++-style comments are easier to handle as they terminate with `\n`. In contrast, C-style comments can span multiple lines, requiring carefully designed regular expressions. Both types are managed using exclusive start conditions. As for Pseudo comment, it is managed with `opt_src` and `opt_tok`.
 
 ## What is the hardest you think in this project
 
