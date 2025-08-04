@@ -3,6 +3,7 @@
 %option noinput
 
 %{
+/* C Declarations and Includes */
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@ static bool isKeyword(const char *word);
 
 %}
 
+/* <Name>   <Regular Expression> */
 delimiters  [,;:\[\]()]
 operators   \+|\-|\*|\/|"mod"|:=|<|<=|<>|>=|>|=|"and"|"or"|"not"
 digit       [0-9]
@@ -41,6 +43,8 @@ string      \"([^\"\n]|\"\")*\"
 %x CPPCOMMENT
 
 %%
+/* <Regular Expression> <Action> */
+
 "//&S-"(.*) { opt_src = 0; }
 "//&T-"(.*) { opt_tok = 0; }
 "//&S+"(.*) { opt_src = 1; }
@@ -116,6 +120,7 @@ string      \"([^\"\n]|\"\")*\"
 }
 
 %%
+/* User Subroutine */
 
 /** @note The line is printed out and flushed when a newline character is encountered. */
 static void updateCurrentLine(const char *source) {
