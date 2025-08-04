@@ -43,7 +43,7 @@ string      \"([^\"\n]|\"\")*\"
 %x CPPCOMMENT
 
 %%
-/* <Regular Expression> <Action> */
+    /* <Regular Expression> <Action> */
 
 "//&S-"(.*) { opt_src = 0; }
 "//&T-"(.*) { opt_tok = 0; }
